@@ -40,6 +40,8 @@ module Danger
       @env = env
 
       self.repo_slug = remote_info.slug
+      # require 'pry'
+      # pry
       raise_error_for_missing_remote if remote_info.kind_of?(NoRepoInfo)
 
       self.pull_request_id = found_pull_request.pull_request_id

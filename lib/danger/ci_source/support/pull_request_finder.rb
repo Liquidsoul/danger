@@ -83,6 +83,10 @@ module Danger
           remote_pull_request.head.sha,
           remote_pull_request.base.sha
         )
+      when :gitlab
+        require 'pry'
+        pry
+        RemotePullRequest.new()
       else
         raise "SCM provider not supported: #{scm_provider}"
       end
@@ -137,7 +141,9 @@ module Danger
 
     def client
       scm_provider = find_scm_provider(remote_url)
-    
+      # require 'pry'
+      # pry
+
       case scm_provider
       when :bitbucket_cloud
         require "danger/request_sources/bitbucket_cloud_api"
@@ -153,6 +159,12 @@ module Danger
         require "octokit"
         Octokit::Client.new(access_token: ENV["DANGER_GITHUB_API_TOKEN"], api_endpoint: api_url)
 
+      when :gitlab
+        require 'pry'
+        pry
+        require 'danger/request_sources/gitlab'
+        RequestSources::GitLabAPI.new(repo_slug, specific_pull_request_id, env)
+        remote_url.match(/access_token=(.*)?(&|$)/)[1]
       else
         raise "SCM provider not supported: #{scm_provider}"
       end
@@ -171,6 +183,8 @@ module Danger
         :bitbucket_cloud
       elsif remote_url =~ %r{/pull-requests/}
         :bitbucket_server
+      elsif remote_url =~ %r{/gitlab.com/}
+        :gitlab
       else
         :github
       end

@@ -6,6 +6,42 @@ require "danger/request_sources/support/get_ignored_violation"
 
 module Danger
   module RequestSources
+    class GitLabAPI
+
+      def initialize(repo_slug, pull_request_id, api_token, environment)
+        token = api_token || @environment["DANGER_GITLAB_API_TOKEN"]
+        raise "No API token given, please provide one using `DANGER_GITLAB_API_TOKEN`" unless token
+
+        require "gitlab"
+
+        @client ||= Gitlab.client(endpoint: endpoint, private_token: token)
+      rescue LoadError => e
+        if e.path == "gitlab"
+          puts "The GitLab gem was not installed, you will need to change your Gem from `danger` to `danger-gitlab`.".red
+          puts "\n - See https://github.com/danger/danger/blob/master/CHANGELOG.md#400"
+        else
+          puts "Error: #{e}".red
+        end
+        abort
+      end
+
+      def pull_request(*)
+        JSON.parse('[]', symbolize_names: true)
+      end
+
+      private
+
+      def endpoint
+        @endpoint ||= @environment["DANGER_GITLAB_API_BASE_URL"] || @environment["CI_API_V4_URL"] || "https://gitlab.com/api/v4"
+      end
+
+
+
+    end
+  end
+end
+module Danger
+  module RequestSources
     class GitLab < RequestSource
       include Danger::Helpers::CommentsHelper
       attr_accessor :mr_json, :commits_json, :dismiss_out_of_range_messages

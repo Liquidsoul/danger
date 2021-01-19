@@ -151,6 +151,11 @@ RSpec.describe Danger::PullRequestFinder do
       expect(find_scm_provider(url)).to eq :github
     end
 
+    it "detects url for gitlab" do
+      url = "https://gitlab.com/gitlab-org/gitlab/merge_requests/51960"
+      expect(find_scm_provider(url)).to eq :gitlab
+    end
+
     it "defaults to github when unknown url" do
       url = "http://www.default-url.com/"
       expect(find_scm_provider(url)).to eq :github
