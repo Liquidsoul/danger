@@ -9,6 +9,10 @@ module Danger
     class GitLabAPI
 
       def initialize(repo_slug, pull_request_id, api_token, environment)
+        @repo_slug = repo_slug
+        @pull_request_id = pull_request_id
+        @environment = environment
+
         token = api_token || @environment["DANGER_GITLAB_API_TOKEN"]
         raise "No API token given, please provide one using `DANGER_GITLAB_API_TOKEN`" unless token
 
@@ -26,7 +30,7 @@ module Danger
       end
 
       def pull_request(*)
-        JSON.parse('[]', symbolize_names: true)
+        @client.merge_request(@repo_slug, @pull_request_id)
       end
 
       private
@@ -34,9 +38,6 @@ module Danger
       def endpoint
         @endpoint ||= @environment["DANGER_GITLAB_API_BASE_URL"] || @environment["CI_API_V4_URL"] || "https://gitlab.com/api/v4"
       end
-
-
-
     end
   end
 end
@@ -76,7 +77,7 @@ module Danger
       rescue LoadError => e
         if e.path == "gitlab"
           puts "The GitLab gem was not installed, you will need to change your Gem from `danger` to `danger-gitlab`.".red
-          puts "\n - See https://github.com/danger/danger/blob/master/CHANGELOG.md#400"
+
         else
           puts "Error: #{e}".red
         end
@@ -95,6 +96,8 @@ module Danger
       end
 
       def validates_as_api_source?
+        # require 'pry'
+        # pry
         @token && !@token.empty?
       end
 

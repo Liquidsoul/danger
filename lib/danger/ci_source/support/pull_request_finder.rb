@@ -84,9 +84,13 @@ module Danger
           remote_pull_request.base.sha
         )
       when :gitlab
-        require 'pry'
-        pry
-        RemotePullRequest.new()
+        # require 'pry'
+        # binding.pry
+        RemotePullRequest.new(
+          remote_pull_request.iid.to_s,
+          remote_pull_request.diff_refs.head_sha,
+          remote_pull_request.diff_refs.base_sha,
+        )
       else
         raise "SCM provider not supported: #{scm_provider}"
       end
@@ -160,11 +164,11 @@ module Danger
         Octokit::Client.new(access_token: ENV["DANGER_GITHUB_API_TOKEN"], api_endpoint: api_url)
 
       when :gitlab
-        require 'pry'
-        pry
+        # require 'pry'
+        # pry
         require 'danger/request_sources/gitlab'
-        RequestSources::GitLabAPI.new(repo_slug, specific_pull_request_id, env)
-        remote_url.match(/access_token=(.*)?(&|$)/)[1]
+        access_token = remote_url.match(/access_token=(.*)?(&|$)/)&.captures&.dig(0)
+        RequestSources::GitLabAPI.new(repo_slug, specific_pull_request_id, access_token, env)
       else
         raise "SCM provider not supported: #{scm_provider}"
       end
